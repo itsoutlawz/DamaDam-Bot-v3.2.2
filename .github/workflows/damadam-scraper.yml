@@ -7,36 +7,30 @@ on:
         description: "Profiles to scrape (0 = All)"
         required: false
         default: "0"
-
       batch_size:
-        description: "Batch size"
+        description: "Batch Size"
         required: false
         default: "20"
-
       min_delay:
-        description: "Min delay between requests"
+        description: "Min Delay"
         required: false
         default: "0.3"
-
       max_delay:
-        description: "Max delay between requests"
+        description: "Max Delay"
         required: false
         default: "0.5"
-
       timeout:
-        description: "Page load timeout (seconds)"
+        description: "Page Load Timeout"
         required: false
         default: "30"
-
       sheet_delay:
-        description: "Sheet write delay"
+        description: "Sheet Write Delay"
         required: false
         default: "1.0"
 
 jobs:
   run-scraper:
     runs-on: windows-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -62,16 +56,14 @@ jobs:
           echo "DAMADAM_USERNAME=${{ secrets.DAMADAM_USERNAME }}" >> $GITHUB_ENV
           echo "DAMADAM_PASSWORD=${{ secrets.DAMADAM_PASSWORD }}" >> $GITHUB_ENV
           echo "GOOGLE_SHEET_URL=${{ secrets.GOOGLE_SHEET_URL }}" >> $GITHUB_ENV
-
           echo "GOOGLE_APPLICATION_CREDENTIALS=google_credentials.json" >> $GITHUB_ENV
           echo "GOOGLE_CREDENTIALS_JSON=${{ secrets.GOOGLE_CREDENTIALS_JSON }}" >> $GITHUB_ENV
-
-          echo 'MAX_PROFILES_PER_RUN=${{ inputs.max_profiles }}' >> $GITHUB_ENV
-          echo 'BATCH_SIZE=${{ inputs.batch_size }}' >> $GITHUB_ENV
-          echo 'MIN_DELAY=${{ inputs.min_delay }}' >> $GITHUB_ENV
-          echo 'MAX_DELAY=${{ inputs.max_delay }}' >> $GITHUB_ENV
-          echo 'PAGE_LOAD_TIMEOUT=${{ inputs.timeout }}' >> $GITHUB_ENV
-          echo 'SHEET_WRITE_DELAY=${{ inputs.sheet_delay }}' >> $GITHUB_ENV
+          echo "MAX_PROFILES_PER_RUN=${{ inputs.max_profiles }}" >> $GITHUB_ENV
+          echo "BATCH_SIZE=${{ inputs.batch_size }}" >> $GITHUB_ENV
+          echo "MIN_DELAY=${{ inputs.min_delay }}" >> $GITHUB_ENV
+          echo "MAX_DELAY=${{ inputs.max_delay }}" >> $GITHUB_ENV
+          echo "PAGE_LOAD_TIMEOUT=${{ inputs.timeout }}" >> $GITHUB_ENV
+          echo "SHEET_WRITE_DELAY=${{ inputs.sheet_delay }}" >> $GITHUB_ENV
 
       - name: Run Scraper
         run: python Scraper.py --max-profiles ${{ inputs.max_profiles }} --batch-size ${{ inputs.batch_size }}
