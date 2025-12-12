@@ -46,9 +46,7 @@ jobs:
       - name: Inject Google Credentials Safely
         shell: bash
         run: |
-          echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" | tr -d '\r' > google_credentials.json
-          sed -i 's/\\\\n/\
-/g' google_credentials.json
+          echo '${{ secrets.GOOGLE_CREDENTIALS_JSON }}' > google_credentials.json
 
       - name: Set Environment Variables
         shell: bash
