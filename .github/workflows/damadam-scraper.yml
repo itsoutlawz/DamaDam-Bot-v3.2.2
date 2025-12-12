@@ -4,27 +4,32 @@ on:
   workflow_dispatch:
     inputs:
       max_profiles:
-        description: "Profiles to scrape (0 = all)"
+        description: "Profiles to scrape (0 = All)"
         required: false
         default: "0"
+
       batch_size:
         description: "Batch size"
         required: false
         default: "20"
+
       min_delay:
-        description: "Minimum delay between requests"
+        description: "Min delay between requests"
         required: false
         default: "0.3"
+
       max_delay:
-        description: "Maximum delay between requests"
+        description: "Max delay between requests"
         required: false
         default: "0.5"
+
       timeout:
-        description: "Page load timeout seconds"
+        description: "Page load timeout (seconds)"
         required: false
         default: "30"
+
       sheet_delay:
-        description: "Sheet write delay seconds"
+        description: "Sheet write delay"
         required: false
         default: "1.0"
 
@@ -33,49 +38,40 @@ jobs:
     runs-on: windows-latest
 
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Checkout Repository
-      uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
 
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.10"
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
 
-    - name: Install Dependencies
-      run: pip install -r requirements.txt
-
-    # SAFEST MULTILINE GOOGLE JSON HANDLER
-    - name: Inject Google Credentials Safely
-      shell: bash
-      run: |
-        echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" | tr -d '\r' > google_credentials.json
-        sed -i 's/\\\\n/\
+      - name: Inject Google Credentials Safely
+        shell: bash
+        run: |
+          echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" | tr -d '\r' > google_credentials.json
+          sed -i 's/\\\\n/\
 /g' google_credentials.json
 
-    # EXPORT ALL SECRETS + WORKFLOW INPUTS INTO ENV
-    - name: Set Environment Variables
-      shell: bash
-      run: |
-        echo "DAMADAM_USERNAME=${{ secrets.DAMADAM_USERNAME }}" >> $GITHUB_ENV
-        echo "DAMADAM_PASSWORD=${{ secrets.DAMADAM_PASSWORD }}" >> $GITHUB_ENV
-        echo "GOOGLE_SHEET_URL=${{ secrets.GOOGLE_SHEET_URL }}" >> $GITHUB_ENV
+      - name: Set Environment Variables
+        shell: bash
+        run: |
+          echo "DAMADAM_USERNAME=${{ secrets.DAMADAM_USERNAME }}" >> $GITHUB_ENV
+          echo "DAMADAM_PASSWORD=${{ secrets.DAMADAM_PASSWORD }}" >> $GITHUB_ENV
+          echo "GOOGLE_SHEET_URL=${{ secrets.GOOGLE_SHEET_URL }}" >> $GITHUB_ENV
 
-        # Google JSON file path
-        echo "GOOGLE_APPLICATION_CREDENTIALS=google_credentials.json" >> $GITHUB_ENV
+          echo "GOOGLE_APPLICATION_CREDENTIALS=google_credentials.json" >> $GITHUB_ENV
+          echo "GOOGLE_CREDENTIALS_JSON=${{ secrets.GOOGLE_CREDENTIALS_JSON }}" >> $GITHUB_ENV
 
-        # Also pass raw JSON to script (fallback)
-        echo "GOOGLE_CREDENTIALS_JSON=${{ secrets.GOOGLE_CREDENTIALS_JSON }}" >> $GITHUB_ENV
+          echo 'MAX_PROFILES_PER_RUN=${{ inputs.max_profiles }}' >> $GITHUB_ENV
+          echo 'BATCH_SIZE=${{ inputs.batch_size }}' >> $GITHUB_ENV
+          echo 'MIN_DELAY=${{ inputs.min_delay }}' >> $GITHUB_ENV
+          echo 'MAX_DELAY=${{ inputs.max_delay }}' >> $GITHUB_ENV
+          echo 'PAGE_LOAD_TIMEOUT=${{ inputs.timeout }}' >> $GITHUB_ENV
+          echo 'SHEET_WRITE_DELAY=${{ inputs.sheet_delay }}' >> $GITHUB_ENV
 
-        # Workflow Manual Inputs (Scraping Behavior)
-        echo "MAX_PROFILES_PER_RUN=${{ inputs.max_profiles }}" >> $GITHUB_ENV
-        echo "BATCH_SIZE=${{ inputs.batch_size }}" >> $GITHUB_ENV
-        echo "MIN_DELAY=${{ inputs.min_delay }}" >> $GITHUB_ENV
-        echo "MAX_DELAY=${{ inputs.max_delay }}" >> $GITHUB_ENV
-        echo "PAGE_LOAD_TIMEOUT=${{ inputs.timeout }}" >> $GITHUB_ENV
-        echo "SHEET_WRITE_DELAY=${{ inputs.sheet_delay }}" >> $GITHUB_ENV
-
-    # RUN SCRAPER.PY WITH MANUAL INPUT ARGUMENTS
-    - name: Run Scraper
-      run: |
-        python Scraper.py --max-profiles ${{ inputs.max_profiles }} --batch-size ${{ inputs.batch_size }}
+      - name: Run Scraper
+        run: python Scraper.py --max-profiles ${{ inputs.max_profiles }} --batch-size ${{ inputs.batch_size }}
