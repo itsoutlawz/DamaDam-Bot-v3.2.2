@@ -43,10 +43,12 @@ jobs:
       - name: Install Dependencies
         run: pip install -r requirements.txt
 
-      - name: Inject Google Credentials Safely
+      - name: Create Google Credentials File
         shell: bash
         run: |
-          echo '${{ secrets.GOOGLE_CREDENTIALS_JSON }}' > google_credentials.json
+          cat > google_credentials.json << 'EOF'
+          ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+          EOF
 
       - name: Set Environment Variables
         shell: bash
@@ -55,7 +57,6 @@ jobs:
           echo "DAMADAM_PASSWORD=${{ secrets.DAMADAM_PASSWORD }}" >> $GITHUB_ENV
           echo "GOOGLE_SHEET_URL=${{ secrets.GOOGLE_SHEET_URL }}" >> $GITHUB_ENV
           echo "GOOGLE_APPLICATION_CREDENTIALS=google_credentials.json" >> $GITHUB_ENV
-          echo "GOOGLE_CREDENTIALS_JSON=${{ secrets.GOOGLE_CREDENTIALS_JSON }}" >> $GITHUB_ENV
           echo "MAX_PROFILES_PER_RUN=${{ inputs.max_profiles }}" >> $GITHUB_ENV
           echo "BATCH_SIZE=${{ inputs.batch_size }}" >> $GITHUB_ENV
           echo "MIN_DELAY=${{ inputs.min_delay }}" >> $GITHUB_ENV
