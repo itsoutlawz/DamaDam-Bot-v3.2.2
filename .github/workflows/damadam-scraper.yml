@@ -1,20 +1,36 @@
 name: DamaDam Scraper
 
 on:
-  schedule:
-    - cron: "0 */1 * * *"   # Run every 1 hour
   workflow_dispatch:
+    inputs:
+      max_profiles:
+        description: "Profiles to scrape (0 = all)"
+        required: false
+        default: "0"
+      batch_size:
+        description: "Batch size"
+        required: false
+        default: "20"
+      min_delay:
+        description: "Min Delay"
+        required: false
+        default: "0.3"
+      max_delay:
+        description: "Max Delay"
+        required: false
+        default: "0.5"
+      timeout:
+        description: "Page Load Timeout"
+        required: false
+        default: "30"
 
 jobs:
   run-scraper:
     runs-on: windows-latest
-
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-    - name: Setup Python
-      uses: actions/setup-python@v5
+    - uses: actions/setup-python@v5
       with:
         python-version: "3.10"
 
@@ -22,17 +38,21 @@ jobs:
       run: pip install -r requirements.txt
 
     - name: Inject Google Credentials
-      run: |
-        echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" > google_credentials.json
+      run: echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" > google_credentials.json
       shell: bash
 
-    - name: Set Environment Variables
+    - name: Set ENV Vars
       run: |
         echo "DAMADAM_USERNAME=${{ secrets.DAMADAM_USERNAME }}" >> $GITHUB_ENV
         echo "DAMADAM_PASSWORD=${{ secrets.DAMADAM_PASSWORD }}" >> $GITHUB_ENV
         echo "GOOGLE_SHEET_URL=${{ secrets.GOOGLE_SHEET_URL }}" >> $GITHUB_ENV
         echo "GOOGLE_CREDENTIALS_JSON=${{ secrets.GOOGLE_CREDENTIALS_JSON }}" >> $GITHUB_ENV
         echo "GOOGLE_APPLICATION_CREDENTIALS=google_credentials.json" >> $GITHUB_ENV
+        echo "MAX_PROFILES_PER_RUN=${{ inputs.max_profiles }}" >> $GITHUB_ENV
+        echo "BATCH_SIZE=${{ inputs.batch_size }}" >> $GITHUB_ENV
+        echo "MIN_DELAY=${{ inputs.min_delay }}" >> $GITHUB_ENV
+        echo "MAX_DELAY=${{ inputs.max_delay }}" >> $GITHUB_ENV
+        echo "PAGE_LOAD_TIMEOUT=${{ inputs.timeout }}" >> $GITHUB_ENV
 
     - name: Run Scraper
-      run: python Scraper.py --max-profiles 0 --batch-size 20
+      run: python Scraper.py --max-profiles ${{ inputs.max_profiles }} --batch-size ${{ inputs.batch_size }}
