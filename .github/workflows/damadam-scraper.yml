@@ -1,0 +1,38 @@
+name: DamaDam Scraper
+
+on:
+  schedule:
+    - cron: "0 */1 * * *"   # Run every 1 hour
+  workflow_dispatch:
+
+jobs:
+  run-scraper:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    - name: Install Dependencies
+      run: pip install -r requirements.txt
+
+    - name: Inject Google Credentials
+      run: |
+        echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" > google_credentials.json
+      shell: bash
+
+    - name: Set Environment Variables
+      run: |
+        echo "DAMADAM_USERNAME=${{ secrets.DAMADAM_USERNAME }}" >> $GITHUB_ENV
+        echo "DAMADAM_PASSWORD=${{ secrets.DAMADAM_PASSWORD }}" >> $GITHUB_ENV
+        echo "GOOGLE_SHEET_URL=${{ secrets.GOOGLE_SHEET_URL }}" >> $GITHUB_ENV
+        echo "GOOGLE_CREDENTIALS_JSON=${{ secrets.GOOGLE_CREDENTIALS_JSON }}" >> $GITHUB_ENV
+        echo "GOOGLE_APPLICATION_CREDENTIALS=google_credentials.json" >> $GITHUB_ENV
+
+    - name: Run Scraper
+      run: python Scraper.py --max-profiles 0 --batch-size 20
