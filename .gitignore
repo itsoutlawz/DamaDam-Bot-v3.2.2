@@ -1,4 +1,15 @@
+# Python cache
 __pycache__/
-.env
+*.pyc
+
+# Credentials
 credentials.json
+.env
 *.pkl
+
+# Chrome driver logs
+chromedriver.log
+
+# Local artifacts
+*.xlsx
+*.csv
